@@ -1,0 +1,49 @@
+spring:
+  application.name: markdown-blob-server
+  auth:
+    verifyTokenLifetime: ${VERIFY_TOKEN_LIFETIME}
+    jwt:
+      secret: ${JWT_SECRET}
+      accessTokenLifetime: ${JWT_ACCESS_TOKEN_LIFETIME}
+      refreshTokenLifetime: ${JWT_REFRESH_TOKEN_LIFETIME}
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: true
+    #    properties.hibernate.format_sql: true
+    hibernate:
+      ddl-auto: update
+  mail:
+    host: ${MAIL_HOST}
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    protocol: smtp
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+    test-connection: true
+
+storage:
+  markdown:
+    bucketName: ${MARKDOWN_STORAGE_BUCKET_NAME}
+    serviceEndpoint: ${MARKDOWN_STORAGE_SERVICE_ENDPOINT}
+    region: ${MARKDOWN_STORAGE_REGION}
+    accessKeyId: ${MARKDOWN_STORAGE_ACCESS_KEY_ID}
+    secretKey: ${MARKDOWN_STORAGE_SECRET_KEY}
+
+env:
+  type: ${ENV_TYPE}
+
+logging:
+  level:
+    #    org.hibernate:
+    #      SQL: DEBUG
+    #      type.descriptor.sql.BasicBinder: TRACE
+    ofya.markdown.blob.server: DEBUG
+    org:
+      springframework: INFO
+#      hibernate.SQL: INFO
