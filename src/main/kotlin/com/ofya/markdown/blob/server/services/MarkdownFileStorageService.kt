@@ -1,6 +1,5 @@
 package com.ofya.markdown.blob.server.services
 
-import com.amazonaws.services.s3.model.ObjectMetadata
 import com.ofya.markdown.blob.server.dtos.error.ClientError
 import com.ofya.markdown.blob.server.dtos.error.ClientErrorType
 import com.ofya.markdown.blob.server.entities.MarkdownFile
@@ -44,13 +43,9 @@ class MarkdownFileStorageService(
             validateUserAccessToFile(userId, fileName)
         }
 
-        val metadata = ObjectMetadata().apply {
-            contentType = "plain/text"
-            contentLength = fileBytes.size.toLong()
-        }
         val inputStream = ByteArrayInputStream(fileBytes)
 
-        markdownFileStorageClient.putObject(filePath, inputStream, metadata)
+        markdownFileStorageClient.putObject(filePath, fileBytes)
         if (isNew) {
             markdownFileRepository.save(MarkdownFile(userId = userId, fileName = fileName))
         } else {
