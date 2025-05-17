@@ -11,7 +11,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
-import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
 
 @Service
@@ -42,8 +41,6 @@ class MarkdownFileStorageService(
             isNew = false;
             validateUserAccessToFile(userId, fileName)
         }
-
-        val inputStream = ByteArrayInputStream(fileBytes)
 
         markdownFileStorageClient.putObject(filePath, fileBytes)
         if (isNew) {
