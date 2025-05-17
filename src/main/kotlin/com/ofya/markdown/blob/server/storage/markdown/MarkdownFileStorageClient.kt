@@ -24,10 +24,11 @@ class MarkdownFileStorageClient(
     private val log = LoggerFactory.getLogger(MarkdownFileStorageClient::class.java)
 
     fun doesObjectExist(filePath: String): Boolean {
+        val key = buildFullPath(filePath)
         val headObjectRequest = HeadObjectRequest
             .builder()
             .bucket(bucketName)
-            .key(buildFullPath(filePath))
+            .key(key)
             .build()
 
         try {
@@ -36,7 +37,9 @@ class MarkdownFileStorageClient(
         } catch (_: NoSuchKeyException) {
             return false
         } catch (e: Exception) {
-            throw e
+            val message = "Error while checking if file is present on storage. bucketName:$bucketName key:$key"
+            log.error(message, e)
+            throw ServerError(message)
         }
     }
 
