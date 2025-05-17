@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.util.Date
@@ -73,10 +72,10 @@ class AuthService(
         )
 
         SecurityContextHolder.getContext().authentication = authentication
-        val userDetails = authentication.principal as UserDetails
-        val accessToken = jwtUtils.generateAccessTokenForUser(userDetails.username)
-        val refreshToken = jwtUtils.generateRefreshTokenForUser(userDetails.username)
-        val roles = userDetails.authorities
+        val user = authentication.principal as User
+        val accessToken = jwtUtils.generateAccessTokenForUser(user)
+        val refreshToken = jwtUtils.generateRefreshTokenForUser(user)
+        val roles = user.authorities
             .map { it -> it.authority }
             .toList()
 
@@ -84,10 +83,13 @@ class AuthService(
     }
 
     fun refresh(refreshRequest: RefreshRequest): RefreshResponse {
-        jwtUtils.validateRefreshToken(refreshRequest.refreshToken)
-        val username = jwtUtils.getUsernameFromToken(refreshRequest.refreshToken)
+        val userClaims = jwtUtils.validateRefreshToken(refreshRequest.refreshToken)
+        val user = userRepository
+            .findById(userClaims.id)
+            // TODO create precondition utils
+            .get()
 
-        val accessToken = jwtUtils.generateAccessTokenForUser(username)
+        val accessToken = jwtUtils.generateAccessTokenForUser(user)
 
         return RefreshResponse(accessToken)
     }

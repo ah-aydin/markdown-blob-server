@@ -21,7 +21,7 @@ class MarkdownFileStorageService(
     private val markdownFileRepository: MarkdownFileRepository
 ) {
 
-    private val logger = LoggerFactory.getLogger(MarkdownFileStorageService::class.java)
+    private val log = LoggerFactory.getLogger(MarkdownFileStorageService::class.java)
 
     fun getFilesForUser(userId: Long, page: Int, size: Int): Page<MarkdownFile> {
         val pageable = PageRequest.of(
@@ -56,7 +56,7 @@ class MarkdownFileStorageService(
         } else {
             markdownFileRepository.updateUpdatedAtByUserIdAndFileName(userId, fileName, LocalDateTime.now())
         }
-        logger.info("Uploaded file '$filePath' to storage")
+        log.info("Uploaded file '$filePath' to storage")
     }
 
     fun download(userId: Long, fileName: String): ByteArray {
@@ -79,7 +79,7 @@ class MarkdownFileStorageService(
 
         markdownFileStorageClient.deleteObject(filePath)
         markdownFileRepository.deleteByUserIdAndFileName(userId, fileName)
-        logger.info("Deleted file '$filePath' to storage")
+        log.info("Deleted file '$filePath' to storage")
     }
 
     private fun buildFilePathForUser(userId: Long, fileName: String): String {

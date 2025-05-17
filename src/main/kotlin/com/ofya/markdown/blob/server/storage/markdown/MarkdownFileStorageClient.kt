@@ -14,7 +14,7 @@ class MarkdownFileStorageClient(
     private val bucketName: String
 ) {
 
-    private val logger = LoggerFactory.getLogger(MarkdownFileStorageClient::class.java)
+    private val log = LoggerFactory.getLogger(MarkdownFileStorageClient::class.java)
 
     fun doesObjectExist(filePath: String): Boolean {
         return amazonS3Client.doesObjectExist(bucketName, buildFullPath(filePath))
@@ -26,7 +26,7 @@ class MarkdownFileStorageClient(
             return amazonS3Client.putObject(bucketName, key, inputStream, metadata)
         } catch (e: Exception) {
             val message = "Error uploading file to storage. bucketName:$bucketName key:$key"
-            logger.error(message, e)
+            log.error(message, e)
             throw ServerError(message)
         }
     }
@@ -37,7 +37,7 @@ class MarkdownFileStorageClient(
             return IOUtils.toByteArray(amazonS3Client.getObject(bucketName, key).objectContent)
         } catch (e: Exception) {
             val message = "Error downloading file from storage. bucketName:$bucketName key:$key"
-            logger.error(message, e)
+            log.error(message, e)
             throw ServerError(message)
         }
     }
@@ -48,7 +48,7 @@ class MarkdownFileStorageClient(
             amazonS3Client.deleteObject(bucketName, key)
         } catch (e: Exception) {
             val message = "Error deleting file from storage. bucketName:$bucketName key:$key"
-            logger.error(message, e)
+            log.error(message, e)
             throw ServerError(message)
         }
     }

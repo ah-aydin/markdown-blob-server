@@ -9,6 +9,8 @@ import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.MalformedJwtException
 import io.jsonwebtoken.UnsupportedJwtException
 import io.jsonwebtoken.security.SignatureException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
@@ -36,6 +38,8 @@ fun buildErrorBody(errorType: Any, message: Any): ErrorResponseBody {
 @ControllerAdvice
 class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
 
+    private val log: Logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
+
     @ExceptionHandler(ClientError::class)
     fun handleClientError(clientError: ClientError): ErrorResponse {
         val responseBody = buildErrorBody(
@@ -47,6 +51,7 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(ServerError::class)
     fun handleServerError(serverError: ServerError): ErrorResponse {
+        log.error("", serverError)
         val responseBody = buildErrorBody(
             "INTERNAL_ERROR",
             serverError.message
@@ -80,6 +85,16 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
             else -> buildErrorBody(JwtError.JWT_UNKNOWN_ERROR, "Unknown JWT error")
         }
         return ResponseEntity(responseBody, HttpStatus.UNAUTHORIZED)
+    }
+
+    @ExceptionHandler(Exception::class)
+    fun handleGenericException(exception: Exception): ErrorResponse {
+        log.error("", exception)
+        val responseBody = buildErrorBody(
+            "INTERNAL_ERROR",
+            exception.message.toString()
+        )
+        return ResponseEntity(responseBody, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
     override fun handleMethodArgumentNotValid(

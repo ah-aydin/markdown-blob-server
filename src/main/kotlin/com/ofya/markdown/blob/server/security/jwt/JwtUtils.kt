@@ -1,5 +1,6 @@
 package com.ofya.markdown.blob.server.security.jwt
 
+import com.ofya.markdown.blob.server.entities.User
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.MalformedJwtException
@@ -33,26 +34,22 @@ class JwtUtils {
         return null
     }
 
-    fun generateAccessTokenForUser(username: String): String {
-        // TODO include user ID and roles in claims
-        return Jwts
-            .builder()
-            .subject(username)
-            .claim("type", JwtTokenType.ACCESS)
-            .issuedAt(Date())
-            .expiration(Date(Date().time + (accessTokenLifetime ?: 0)))
-            .signWith(getKey())
-            .compact()
+    fun generateAccessTokenForUser(user: User): String {
+        return generateTokenForUser(user, JwtTokenType.ACCESS, (accessTokenLifetime ?: 0))
     }
 
-    fun generateRefreshTokenForUser(username: String): String {
-        // TODO include user ID and roles in claims
+    fun generateRefreshTokenForUser(user: User): String {
+        return generateTokenForUser(user, JwtTokenType.REFRESH, (refreshTokenLifetime ?: 0))
+    }
+
+    private fun generateTokenForUser(user: User, jwtTokenType: JwtTokenType, tokenLifetime: Long): String {
         return Jwts
             .builder()
-            .subject(username)
+            .subject(user.username)
             .issuedAt(Date())
-            .claim("type", JwtTokenType.REFRESH)
-            .expiration(Date(Date().time + (refreshTokenLifetime ?: 0)))
+            .claim("type", jwtTokenType)
+            .claim("user_id", user.id)
+            .expiration(Date(Date().time + tokenLifetime))
             .signWith(getKey())
             .compact()
     }
@@ -61,40 +58,33 @@ class JwtUtils {
         MalformedJwtException::class, ExpiredJwtException::class, UnsupportedJwtException::class,
         IllegalArgumentException::class, SignatureException::class
     )
-    fun validateAccessToken(token: String) {
-        val claims = Jwts
-            .parser()
-            .verifyWith(getKey())
-            .build()
-            .parseSignedClaims(token).payload
-        val tokenType = claims["type"]
-        if (tokenType != JwtTokenType.ACCESS.name) {
-            throw UnsupportedJwtException("Token type is not ACCESS")
-        }
+    fun validateAccessToken(token: String): UserClaims {
+        return validateToken(token, JwtTokenType.ACCESS)
     }
 
     @Throws(
         MalformedJwtException::class, ExpiredJwtException::class, UnsupportedJwtException::class,
         IllegalArgumentException::class, SignatureException::class
     )
-    fun validateRefreshToken(token: String) {
+    fun validateRefreshToken(token: String): UserClaims {
+        return validateToken(token, JwtTokenType.REFRESH)
+    }
+
+    private fun validateToken(token: String, jwtTokenType: JwtTokenType): UserClaims {
         val claims = Jwts
             .parser()
             .verifyWith(getKey())
             .build()
             .parseSignedClaims(token).payload
+
         val tokenType = claims["type"]
-        if (tokenType != JwtTokenType.REFRESH.name) {
+        if (tokenType != jwtTokenType.name) {
             throw UnsupportedJwtException("Token type is not REFRESH")
         }
-    }
 
-    fun getUsernameFromToken(token: String): String {
-        return Jwts
-            .parser()
-            .verifyWith(getKey())
-            .build()
-            .parseSignedClaims(token).payload.subject
+        val userId = claims["user_id"] as Int
+        val username = claims.subject
+        return UserClaims(id = userId.toLong(), email = username)
     }
 
     private fun getKey(): SecretKey {

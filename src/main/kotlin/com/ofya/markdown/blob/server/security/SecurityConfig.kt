@@ -50,7 +50,6 @@ class SecurityConfig(
         return http.build()
     }
 
-    // TODO remove this if DB verification for login is removed
     @Bean
     fun userDetailsService(): UserDetailsService {
         return UserDetailsService { username ->
@@ -65,7 +64,6 @@ class SecurityConfig(
         return BCryptPasswordEncoder()
     }
 
-    // TODO remove this if DB verification for login is removed
     @Bean
     fun authenticationProvider(): AuthenticationProvider {
         val authProvider = DaoAuthenticationProvider(userDetailsService())

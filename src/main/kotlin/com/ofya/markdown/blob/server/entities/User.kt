@@ -10,7 +10,7 @@ import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
-import java.util.*
+import java.util.Date
 
 @Entity
 @Table(name = "users")
@@ -43,11 +43,11 @@ data class User(
 //        return listOf(SimpleGrantedAuthority("ROLE_ADMIN"))
     }
 
-    override fun getPassword(): String? {
+    override fun getPassword(): String {
         return passwordHash
     }
 
-    override fun getUsername(): String? {
+    override fun getUsername(): String {
         return email
     }
 
