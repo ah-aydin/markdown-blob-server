@@ -49,3 +49,6 @@ logging:
     com.ofya: DEBUG # Your package
     org.springframework.boot.web.embedded.tomcat: DEBUG # For Tomcat
     software.amazon.awssdk: DEBUG # For AWS SDK
+    org.springframework.jdbc: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE # To see SQL binding
+    com.zaxxer.hikari: DEBUG # Very important for connection pool issues
