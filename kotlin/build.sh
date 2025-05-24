@@ -1,0 +1,1 @@
+docker build -t markdown-blob-server:latest .
