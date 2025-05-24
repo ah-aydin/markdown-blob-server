@@ -1,0 +1,1 @@
+web: java -jar ./target/markdown-blob-server-0.0.1-SNAPSHOT.jar
