@@ -1,5 +1,5 @@
-server:
-  port: ${PORT}
+#server:
+#  port: ${PORT}
 
 spring:
   application.name: markdown-blob-server
