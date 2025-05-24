@@ -1,6 +1,5 @@
 #!/bin/bash
 source .env
-set -x
 docker stop markdown-blob-server && docker rm markdown-blob-server
 docker run -p 8080:8080 \
   --name markdown-blob-server \
