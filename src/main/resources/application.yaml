@@ -43,10 +43,9 @@ env:
 
 logging:
   level:
-    #    org.hibernate:
-    #      SQL: DEBUG
-    #      type.descriptor.sql.BasicBinder: TRACE
-    ofya.markdown.blob.server: DEBUG
-    org:
-      springframework: INFO
-#      hibernate.SQL: INFO
+    root: INFO
+    org.springframework: DEBUG
+    org.hibernate: DEBUG
+    com.ofya: DEBUG # Your package
+    org.springframework.boot.web.embedded.tomcat: DEBUG # For Tomcat
+    software.amazon.awssdk: DEBUG # For AWS SDK
