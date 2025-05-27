@@ -6,7 +6,7 @@ use serde_json::json;
 use tracing::error;
 
 pub enum ServerError {
-    InvalidInput(String), // 400
+    BadRequest(String),   // 400
     Unauthorized(String), // 401
     NotFound(String),     // 404
     Conflict(String),     // 409
@@ -17,7 +17,7 @@ pub enum ServerError {
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
         let (status_code, error_type, msg) = match self {
-            ServerError::InvalidInput(msg) => (StatusCode::BAD_REQUEST, "INVALID_INPUT", msg),
+            ServerError::BadRequest(msg) => (StatusCode::BAD_REQUEST, "INVALID_INPUT", msg),
             ServerError::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, "UNAUTHORIZED", msg),
             ServerError::NotFound(msg) => (StatusCode::NOT_FOUND, "NOT_FOUND", msg),
             ServerError::Conflict(msg) => (StatusCode::CONFLICT, "CONFLICT", msg),
@@ -50,7 +50,7 @@ impl From<argon2::password_hash::Error> for ServerError {
 impl From<axum::extract::rejection::JsonRejection> for ServerError {
     fn from(err: axum::extract::rejection::JsonRejection) -> Self {
         error!("Invalid JSON payload: {:?}", err);
-        ServerError::InvalidInput(format!("Invalid request body format: {:?}", err))
+        ServerError::BadRequest(format!("Invalid request body format: {:?}", err))
     }
 }
 

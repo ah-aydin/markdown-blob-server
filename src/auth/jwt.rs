@@ -64,7 +64,7 @@ impl JwtHandler {
             .map_err(|err| ServerError::from(err))
     }
 
-    pub fn validate_access_token(&self, access_token: String) -> Result<(bool, i64), ServerError> {
+    pub fn validate_access_token(&self, access_token: &str) -> Result<(bool, i64), ServerError> {
         let claims = self
             .key
             .verify_token::<JwtClaims>(&access_token, None)

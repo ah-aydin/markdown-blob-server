@@ -7,7 +7,7 @@ use crate::ServerRouter;
 
 pub fn setup_router() -> ServerRouter {
     Router::new()
-        .route("/signup", post(handlers::auth::signup))
+        .route("/", post(handlers::auth::signup))
         .route("/login", post(handlers::auth::login))
         .route("/refresh", post(handlers::auth::refresh))
 }

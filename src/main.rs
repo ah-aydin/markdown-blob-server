@@ -1,21 +1,24 @@
+mod auth;
 mod db;
 mod env;
 mod error;
 mod handlers;
-mod jwt;
+mod middleware;
 mod models;
 mod password;
 mod routers;
 
 use std::time::Duration;
 
+use auth::jwt::JwtHandler;
 use axum::http;
 use axum::routing::Router;
 use db::user_repository::UserRepository;
 use db::DB;
 use env::Env;
 use env::EnvType;
-use jwt::JwtHandler;
+use tower_http::cors::CorsLayer;
+use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
 use tracing::info;
 use tracing::info_span;
@@ -55,8 +58,10 @@ async fn main() {
     };
 
     let app = Router::new()
-        .nest("/api", routers::setup_router())
+        .nest("/api", routers::setup_router(server_state.clone()))
         .with_state(server_state)
+        .layer(TimeoutLayer::new(Duration::from_secs(30)))
+        .layer(CorsLayer::new().allow_origin(tower_http::cors::Any))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(|request: &http::Request<_>| {
