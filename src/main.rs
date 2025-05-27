@@ -7,6 +7,7 @@ mod middleware;
 mod models;
 mod password;
 mod routers;
+mod s3;
 
 use std::time::Duration;
 
@@ -17,6 +18,7 @@ use db::user_repository::UserRepository;
 use db::DB;
 use env::Env;
 use env::EnvType;
+use s3::MarkdownFileStorage;
 use tower_http::cors::CorsLayer;
 use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
@@ -30,6 +32,7 @@ pub type ServerRouter = Router<ServerState>;
 pub struct ServerState {
     env_type: EnvType,
     jwt_handler: JwtHandler,
+    markdown_file_storage: MarkdownFileStorage,
 
     user_repository: UserRepository,
 }
@@ -43,13 +46,13 @@ async fn main() {
 
     let env = Env::init();
 
-    let jwt_handler = JwtHandler::init(&env);
     let db = DB::init(&env).await;
     let addr = format!("0.0.0.0:{}", env.server_port);
 
     let server_state = ServerState {
         env_type: env.env_type,
-        jwt_handler,
+        jwt_handler: JwtHandler::init(&env),
+        markdown_file_storage: MarkdownFileStorage::init(&env).await,
         user_repository: UserRepository::init(db.pool.clone()),
     };
 
@@ -85,5 +88,7 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
 
     info!("Starting server on port {}", env.server_port);
+    drop(env);
+
     axum::serve(listener, app).await.unwrap();
 }
