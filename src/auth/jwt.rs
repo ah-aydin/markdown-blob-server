@@ -67,7 +67,7 @@ impl JwtHandler {
     pub fn validate_access_token(&self, access_token: &str) -> Result<(bool, i64), ServerError> {
         let claims = self
             .key
-            .verify_token::<JwtClaims>(&access_token, None)
+            .verify_token::<JwtClaims>(access_token, None)
             .map_err(|err| ServerError::from(err))?;
 
         let user_id = claims
@@ -82,13 +82,10 @@ impl JwtHandler {
         }
     }
 
-    pub fn validate_refresh_token(
-        &self,
-        refresh_token: String,
-    ) -> Result<(bool, i64), ServerError> {
+    pub fn validate_refresh_token(&self, refresh_token: &str) -> Result<(bool, i64), ServerError> {
         let claims = self
             .key
-            .verify_token::<JwtClaims>(&refresh_token, None)
+            .verify_token::<JwtClaims>(refresh_token, None)
             .map_err(|err| ServerError::from(err))?;
 
         let user_id = claims

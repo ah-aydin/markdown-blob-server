@@ -58,7 +58,7 @@ pub async fn refresh(
     State(ServerState { jwt_handler, .. }): State<ServerState>,
     Json(RefreshPayload { refresh_token }): Json<RefreshPayload>,
 ) -> Result<Json<LoginResponse>, ServerError> {
-    let (is_refresh, user_id) = jwt_handler.validate_refresh_token(refresh_token)?;
+    let (is_refresh, user_id) = jwt_handler.validate_refresh_token(&refresh_token)?;
     if !is_refresh {
         return Err(ServerError::Conflict("Invalid token".to_string()));
     }

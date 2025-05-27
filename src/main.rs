@@ -22,8 +22,7 @@ use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
 use tracing::info;
 use tracing::info_span;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
+use tracing::Level;
 
 pub type ServerRouter = Router<ServerState>;
 
@@ -37,12 +36,9 @@ pub struct ServerState {
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::fmt::layer()
-                .with_target(false)
-                .with_span_events(tracing_subscriber::fmt::format::FmtSpan::NONE),
-        )
+    tracing_subscriber::fmt()
+        .with_max_level(Level::INFO)
+        .with_span_events(tracing_subscriber::fmt::format::FmtSpan::NONE)
         .init();
 
     let env = Env::init();
