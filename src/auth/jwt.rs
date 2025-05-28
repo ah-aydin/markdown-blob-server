@@ -68,6 +68,7 @@ impl JwtHandler {
         let claims = self
             .key
             .verify_token::<JwtClaims>(access_token, None)
+            // TODO handle token expiration with a proper error
             .map_err(|err| ServerError::from(err))?;
 
         let user_id = claims

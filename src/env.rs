@@ -42,7 +42,7 @@ pub struct Env {
 impl Env {
     pub fn init() -> Env {
         info!("⏳ Loading '.env' file");
-        dotenv::dotenv().expect("❌ Failed to load '.env' file");
+        let _ = dotenv::dotenv(); // For local only, ignore error
 
         info!("⏳ Reading environment variables");
         let env = Env {
@@ -50,7 +50,7 @@ impl Env {
 
             server_port: read_env_var_as_u64("SERVER_PORT"),
 
-            db_url: read_env_var("DB_URL"),
+            db_url: read_env_var("DATABASE_URL"),
 
             jwt_access_token_lifetime: read_env_var_as_u64("JWT_ACCESS_TOKEN_LIFETIME"),
             jwt_refresh_token_lifetime: read_env_var_as_u64("JWT_REFRESH_TOKEN_LIFETIME"),
