@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "DELETE FROM markdown_files WHERE user_id=? AND file_name=?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "facc1d41fcecfd143f852a3d8fb1ac0e8045086189b58b8eacefc015d590a80b"
+}
