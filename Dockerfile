@@ -1,22 +1,32 @@
-# Stage 1: Build
-FROM rust:1.87-slim-bookworm AS builder
-
+# Base image for building
+FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
 WORKDIR /app
 
-RUN rm -rf /var/lib/apt/lists/*
+# Stage 1: Plan
+FROM chef AS planner
 
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 COPY .sqlx ./.sqlx
-RUN cargo fetch
+
+RUN cargo chef prepare --recipe-path recipe.json
+
+# Stage 2: Build
+FROM chef AS builder 
+
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+COPY .sqlx ./.sqlx
+
 RUN cargo build --release
 
-# Stage 2: Run
-FROM debian:bookworm-slim AS runner
+# Stage 3: Run
+FROM debian:bookworm-slim AS runtime
 
 WORKDIR /app
-
-RUN rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/markdown-blob-server ./markdown-blob-server
 
