@@ -14,6 +14,12 @@ pub enum ServerError {
     InternalServerError(String), // 500
 }
 
+impl ServerError {
+    fn internal_server_error() -> ServerError {
+        ServerError::InternalServerError("Unknown error".to_string())
+    }
+}
+
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
         let (status_code, error_type, msg) = match self {
@@ -36,14 +42,14 @@ impl IntoResponse for ServerError {
 impl From<sqlx::Error> for ServerError {
     fn from(err: sqlx::Error) -> Self {
         error!("DB error: {:?}", err);
-        ServerError::InternalServerError("Unknown error".to_string())
+        ServerError::internal_server_error()
     }
 }
 
 impl From<argon2::password_hash::Error> for ServerError {
     fn from(err: argon2::password_hash::Error) -> Self {
         error!("Pasword hash error error: {:?}", err);
-        ServerError::InternalServerError("Unknown error".to_string())
+        ServerError::internal_server_error()
     }
 }
 
@@ -57,6 +63,22 @@ impl From<axum::extract::rejection::JsonRejection> for ServerError {
 impl From<jwt_simple::Error> for ServerError {
     fn from(err: jwt_simple::Error) -> Self {
         error!("JWT failure: {:?}", err);
-        ServerError::InternalServerError("Unknown error".to_string())
+        ServerError::internal_server_error()
+    }
+}
+
+impl<E: std::fmt::Debug, R: std::fmt::Debug>
+    From<aws_smithy_runtime_api::client::result::SdkError<E, R>> for ServerError
+{
+    fn from(err: aws_smithy_runtime_api::client::result::SdkError<E, R>) -> Self {
+        error!("AWS S3 error: {:?}", err);
+        ServerError::internal_server_error()
+    }
+}
+
+impl From<aws_smithy_types::byte_stream::error::Error> for ServerError {
+    fn from(err: aws_smithy_types::byte_stream::error::Error) -> Self {
+        error!("AWS ByteStream error: {:?}", err);
+        ServerError::internal_server_error()
     }
 }

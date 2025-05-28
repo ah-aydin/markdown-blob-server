@@ -1,3 +1,4 @@
+pub mod markdown_file_repository;
 pub mod user_repository;
 
 use sqlx::mysql::MySqlPoolOptions;

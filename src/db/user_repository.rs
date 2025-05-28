@@ -1,6 +1,3 @@
-use std::time::SystemTime;
-use std::time::UNIX_EPOCH;
-
 use sqlx;
 use sqlx::MySql;
 use sqlx::Pool;
@@ -9,6 +6,7 @@ use tracing::info;
 use crate::error::ServerError;
 use crate::models::user::User;
 use crate::models::user::UserResponse;
+use crate::time_utils::get_now;
 
 #[derive(Clone)]
 pub struct UserRepository {
@@ -26,10 +24,7 @@ impl UserRepository {
         email: &str,
         password_hash: &str,
     ) -> Result<UserResponse, ServerError> {
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .expect("Time went backwards")
-            .as_millis() as u64;
+        let now = get_now();
         let user_id = sqlx::query!(
             r#"
             INSERT INTO users (email, password_hash, created_at, updated_at)

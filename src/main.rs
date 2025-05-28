@@ -8,16 +8,17 @@ mod models;
 mod password;
 mod routers;
 mod s3;
+mod time_utils;
 
 use std::time::Duration;
 
 use auth::jwt::JwtHandler;
 use axum::http;
 use axum::routing::Router;
+use db::markdown_file_repository::MarkdownFileRepository;
 use db::user_repository::UserRepository;
 use db::DB;
 use env::Env;
-use env::EnvType;
 use s3::MarkdownFileStorage;
 use tower_http::cors::CorsLayer;
 use tower_http::timeout::TimeoutLayer;
@@ -30,10 +31,10 @@ pub type ServerRouter = Router<ServerState>;
 
 #[derive(Clone)]
 pub struct ServerState {
-    env_type: EnvType,
     jwt_handler: JwtHandler,
     markdown_file_storage: MarkdownFileStorage,
 
+    markdown_file_repository: MarkdownFileRepository,
     user_repository: UserRepository,
 }
 
@@ -50,9 +51,10 @@ async fn main() {
     let addr = format!("0.0.0.0:{}", env.server_port);
 
     let server_state = ServerState {
-        env_type: env.env_type,
         jwt_handler: JwtHandler::init(&env),
         markdown_file_storage: MarkdownFileStorage::init(&env).await,
+
+        markdown_file_repository: MarkdownFileRepository::init(db.pool.clone()),
         user_repository: UserRepository::init(db.pool.clone()),
     };
 

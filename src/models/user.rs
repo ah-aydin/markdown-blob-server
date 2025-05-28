@@ -10,7 +10,7 @@ pub struct UserResponse {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct User {
-    pub id: i64,
+    pub id: u64,
     pub email: String,
     pub password_hash: String,
     pub created_at: u64,

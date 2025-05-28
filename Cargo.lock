@@ -2061,6 +2061,8 @@ dependencies = [
  "argon2",
  "aws-config",
  "aws-sdk-s3",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
  "aws-types",
  "axum",
  "dotenv",

@@ -5,6 +5,7 @@ use tracing::info;
 
 use crate::env::Env;
 use crate::env::EnvType;
+use crate::error::ServerError;
 
 #[derive(Clone)]
 pub struct MarkdownFileStorage {
@@ -43,12 +44,11 @@ impl MarkdownFileStorage {
         }
     }
 
-    pub async fn upload(&self, file_path: &str, file_bytes: Vec<u8>) {
+    pub async fn upload(&self, file_path: &str, file_bytes: Vec<u8>) -> Result<(), ServerError> {
         let key = self.build_key(file_path);
         let content_length = file_bytes.len() as i64;
 
-        let response = self
-            .client
+        self.client
             .put_object()
             .bucket(&self.bucket)
             .key(key)
@@ -56,11 +56,12 @@ impl MarkdownFileStorage {
             .content_type("file/text")
             .content_length(content_length)
             .send()
-            .await;
-        info!("{:#?}", response);
+            .await
+            .map(|_| ())
+            .map_err(|err| ServerError::from(err))
     }
 
-    pub async fn download(self, file_path: &str) -> Vec<u8> {
+    pub async fn download(self, file_path: &str) -> Result<Vec<u8>, ServerError> {
         let key = self.build_key(file_path);
 
         let response = self
@@ -70,21 +71,26 @@ impl MarkdownFileStorage {
             .key(key)
             .send()
             .await
-            .unwrap();
-        response.body.collect().await.unwrap().into_bytes().to_vec()
+            .map_err(|err| ServerError::from(err))?;
+        response
+            .body
+            .collect()
+            .await
+            .map(|body| body.into_bytes().to_vec())
+            .map_err(|err| ServerError::from(err))
     }
 
-    pub async fn delete(self, file_path: &str) {
+    pub async fn delete(self, file_path: &str) -> Result<(), ServerError> {
         let key = self.build_key(file_path);
 
-        let response = self
-            .client
+        self.client
             .delete_object()
             .bucket(&self.bucket)
             .key(key)
             .send()
-            .await;
-        info!("{:#?}", response);
+            .await
+            .map(|_| ())
+            .map_err(|err| ServerError::from(err))
     }
 
     fn build_key(&self, file_path: &str) -> String {

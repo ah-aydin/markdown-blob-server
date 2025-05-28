@@ -3,45 +3,58 @@ use axum::extract::Path;
 use axum::extract::Query;
 use axum::extract::State;
 use axum::Extension;
+use axum::Json;
 
 use crate::auth::AuthedUser;
 use crate::error::ServerError;
+use crate::models::markdown_file::MarkdownFileResponse;
 use crate::models::page::PageQuery;
+use crate::models::page::PageResponse;
 use crate::ServerState;
 
-// TODO better error handling for S3 client calls
-// TODO handle accorindg to user ID
-// TODO check for modified files presence
-// TODO modify entries in the markdown file table accordingly
 pub async fn get_page(
-    State(ServerState { .. }): State<ServerState>,
-    page_query: Query<PageQuery>,
+    State(ServerState {
+        markdown_file_repository,
+        ..
+    }): State<ServerState>,
+    Query(page_query): Query<PageQuery>,
     Extension(AuthedUser { user_id }): Extension<AuthedUser>,
-) -> Result<String, ServerError> {
-    Ok(format!(
-        "Getting page {} with size {} for user {}",
-        page_query.page, page_query.size, user_id
-    ))
+) -> Result<Json<PageResponse<MarkdownFileResponse>>, ServerError> {
+    markdown_file_repository
+        .get_page_for_user_id(user_id, page_query.page, page_query.size)
+        .await
+        .map(|page| Json(page))
 }
 
 pub async fn upload(
     State(ServerState {
         markdown_file_storage,
+        markdown_file_repository,
         ..
     }): State<ServerState>,
     Path(file_name): Path<String>,
     Extension(AuthedUser { user_id }): Extension<AuthedUser>,
     file_bytes: Bytes,
-) -> Result<(), ServerError> {
-    markdown_file_storage
+) -> Result<Json<MarkdownFileResponse>, ServerError> {
+    let inserted_file_response_data = markdown_file_repository.insert(user_id, &file_name).await?;
+
+    let s3_response = markdown_file_storage
         .upload(&format!("{user_id}/{file_name}"), file_bytes.to_vec())
         .await;
-    Ok(())
+    if let Some(err) = s3_response.err() {
+        markdown_file_repository
+            .delete_by_id(inserted_file_response_data.id)
+            .await?;
+        return Err(err);
+    }
+
+    Ok(Json(inserted_file_response_data))
 }
 
 pub async fn delete(
     State(ServerState {
         markdown_file_storage,
+        markdown_file_repository,
         ..
     }): State<ServerState>,
     Path(file_name): Path<String>,
@@ -49,19 +62,24 @@ pub async fn delete(
 ) -> Result<(), ServerError> {
     markdown_file_storage
         .delete(&format!("{user_id}/{file_name}"))
-        .await;
+        .await?;
+    markdown_file_repository.delete(user_id, &file_name).await?;
     Ok(())
 }
 
 pub async fn download(
     State(ServerState {
         markdown_file_storage,
+        markdown_file_repository,
         ..
     }): State<ServerState>,
     Path(file_name): Path<String>,
     Extension(AuthedUser { user_id }): Extension<AuthedUser>,
 ) -> Result<Vec<u8>, ServerError> {
+    if !markdown_file_repository.exists(user_id, &file_name).await? {
+        return Err(ServerError::NotFound(format!("{file_name} does not exist")));
+    }
     Ok(markdown_file_storage
         .download(&format!("{user_id}/{file_name}"))
-        .await)
+        .await?)
 }

@@ -38,7 +38,7 @@ impl JwtHandler {
         }
     }
 
-    pub fn create_auth_token_for_user(&self, user_id: i64) -> Result<String, ServerError> {
+    pub fn create_auth_token_for_user(&self, user_id: u64) -> Result<String, ServerError> {
         let claims = Claims::with_custom_claims(
             JwtClaims {
                 token_type: TokenType::Access,
@@ -51,7 +51,7 @@ impl JwtHandler {
             .map_err(|err| ServerError::from(err))
     }
 
-    pub fn create_refresh_token_for_user(&self, user_id: i64) -> Result<String, ServerError> {
+    pub fn create_refresh_token_for_user(&self, user_id: u64) -> Result<String, ServerError> {
         let claims = Claims::with_custom_claims(
             JwtClaims {
                 token_type: TokenType::Refresh,
@@ -64,7 +64,7 @@ impl JwtHandler {
             .map_err(|err| ServerError::from(err))
     }
 
-    pub fn validate_access_token(&self, access_token: &str) -> Result<(bool, i64), ServerError> {
+    pub fn validate_access_token(&self, access_token: &str) -> Result<(bool, u64), ServerError> {
         let claims = self
             .key
             .verify_token::<JwtClaims>(access_token, None)
@@ -82,7 +82,7 @@ impl JwtHandler {
         }
     }
 
-    pub fn validate_refresh_token(&self, refresh_token: &str) -> Result<(bool, i64), ServerError> {
+    pub fn validate_refresh_token(&self, refresh_token: &str) -> Result<(bool, u64), ServerError> {
         let claims = self
             .key
             .verify_token::<JwtClaims>(refresh_token, None)
