@@ -2,6 +2,7 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::Json;
+use jwt_simple::JWTError;
 use serde_json::json;
 use tracing::error;
 
@@ -10,6 +11,8 @@ pub enum ServerError {
     Unauthorized(String), // 401
     NotFound(String),     // 404
     Conflict(String),     // 409
+
+    TokenExpired(String), // 401
 
     InternalServerError(String), // 500
 }
@@ -27,6 +30,9 @@ impl IntoResponse for ServerError {
             ServerError::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, "UNAUTHORIZED", msg),
             ServerError::NotFound(msg) => (StatusCode::NOT_FOUND, "NOT_FOUND", msg),
             ServerError::Conflict(msg) => (StatusCode::CONFLICT, "CONFLICT", msg),
+
+            ServerError::TokenExpired(msg) => (StatusCode::UNAUTHORIZED, "TOKEN_EXPIRED", msg),
+
             ServerError::InternalServerError(msg) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "INTERNAL_SERVER_ERROR",
@@ -62,6 +68,11 @@ impl From<axum::extract::rejection::JsonRejection> for ServerError {
 
 impl From<jwt_simple::Error> for ServerError {
     fn from(err: jwt_simple::Error) -> Self {
+        for cause in err.chain() {
+            if let Some(JWTError::TokenHasExpired) = cause.downcast_ref::<JWTError>() {
+                return ServerError::TokenExpired("The token has expired".to_string());
+            }
+        }
         error!("JWT failure: {:?}", err);
         ServerError::internal_server_error()
     }
