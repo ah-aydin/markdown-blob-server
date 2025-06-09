@@ -62,7 +62,12 @@ async fn main() {
         .nest("/api", routers::setup_router(server_state.clone()))
         .with_state(server_state)
         .layer(TimeoutLayer::new(Duration::from_secs(30)))
-        .layer(CorsLayer::new().allow_origin(tower_http::cors::Any))
+        .layer(
+            CorsLayer::new()
+                .allow_origin(tower_http::cors::Any)
+                .allow_headers(tower_http::cors::Any)
+                .allow_methods(tower_http::cors::Any),
+        )
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(|request: &http::Request<_>| {
